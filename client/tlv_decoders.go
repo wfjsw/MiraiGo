@@ -2,8 +2,9 @@ package client
 
 import (
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/binary"
 	"time"
+
+	"github.com/wfjsw/MiraiGo/binary"
 )
 
 // --- tlv decoders for qq client ---

@@ -5,13 +5,14 @@ import (
 	binary2 "encoding/binary"
 	"encoding/hex"
 	"errors"
-	"github.com/Mrs4s/MiraiGo/binary"
-	"github.com/Mrs4s/MiraiGo/client/pb"
-	"github.com/Mrs4s/MiraiGo/utils"
-	"github.com/golang/protobuf/proto"
 	"net"
 	"strconv"
 	"time"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/wfjsw/MiraiGo/binary"
+	"github.com/wfjsw/MiraiGo/client/pb"
+	"github.com/wfjsw/MiraiGo/utils"
 )
 
 func (c *QQClient) highwayUploadImage(ip uint32, port int, updKey, img []byte, cmdId int32) error {

@@ -2,8 +2,9 @@ package client
 
 import (
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/message"
 	"sync"
+
+	"github.com/wfjsw/MiraiGo/message"
 )
 
 type eventHandlers struct {

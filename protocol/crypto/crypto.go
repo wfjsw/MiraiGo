@@ -3,8 +3,9 @@ package crypto
 import (
 	"crypto/md5"
 	"crypto/rand"
-	"github.com/Mrs4s/MiraiGo/binary"
 	"math/big"
+
+	"github.com/wfjsw/MiraiGo/binary"
 )
 
 type EncryptECDH struct {

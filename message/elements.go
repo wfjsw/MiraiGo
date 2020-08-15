@@ -2,9 +2,10 @@ package message
 
 import (
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/client/pb/msg"
 	"strconv"
 	"strings"
+
+	"github.com/wfjsw/MiraiGo/client/pb/msg"
 )
 
 type TextElement struct {

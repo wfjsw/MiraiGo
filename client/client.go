@@ -5,14 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/binary"
-	"github.com/Mrs4s/MiraiGo/client/pb/longmsg"
-	"github.com/Mrs4s/MiraiGo/client/pb/msg"
-	"github.com/Mrs4s/MiraiGo/client/pb/multimsg"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/MiraiGo/protocol/packets"
-	"github.com/Mrs4s/MiraiGo/utils"
-	"github.com/golang/protobuf/proto"
 	"io"
 	"log"
 	"math"
@@ -21,6 +13,15 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/wfjsw/MiraiGo/binary"
+	"github.com/wfjsw/MiraiGo/client/pb/longmsg"
+	"github.com/wfjsw/MiraiGo/client/pb/msg"
+	"github.com/wfjsw/MiraiGo/client/pb/multimsg"
+	"github.com/wfjsw/MiraiGo/message"
+	"github.com/wfjsw/MiraiGo/protocol/packets"
+	"github.com/wfjsw/MiraiGo/utils"
 )
 
 type QQClient struct {
@@ -57,6 +58,14 @@ type QQClient struct {
 	sigInfo          *loginSigInfo
 	pwdFlag          bool
 
+	openId   []byte
+	openKey  []byte
+	payToken []byte
+	pf       []byte
+	pfkey    []byte
+	a1       []byte
+	noPicSig []byte
+
 	lastMessageSeq         int32
 	lastMessageSeqTmp      sync.Map
 	lastLostMsg            string
@@ -84,6 +93,9 @@ type loginSigInfo struct {
 	d2Key              []byte
 	wtSessionTicketKey []byte
 	deviceToken        []byte
+
+	psKeyMap    map[string][]byte
+	pt4TokenMap map[string][]byte
 }
 
 func init() {

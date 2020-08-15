@@ -4,14 +4,15 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/binary"
-	devinfo "github.com/Mrs4s/MiraiGo/client/pb"
-	"github.com/Mrs4s/MiraiGo/client/pb/msg"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/MiraiGo/utils"
-	"google.golang.org/protobuf/proto"
 	"math/rand"
 	"sort"
+
+	"github.com/wfjsw/MiraiGo/binary"
+	devinfo "github.com/wfjsw/MiraiGo/client/pb"
+	"github.com/wfjsw/MiraiGo/client/pb/msg"
+	"github.com/wfjsw/MiraiGo/message"
+	"github.com/wfjsw/MiraiGo/utils"
+	"google.golang.org/protobuf/proto"
 )
 
 type DeviceInfo struct {

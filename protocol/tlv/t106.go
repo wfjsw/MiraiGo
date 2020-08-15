@@ -3,9 +3,10 @@ package tlv
 import (
 	"crypto/md5"
 	binary2 "encoding/binary"
-	"github.com/Mrs4s/MiraiGo/binary"
 	"math/rand"
 	"time"
+
+	"github.com/wfjsw/MiraiGo/binary"
 )
 
 func T106(uin, salt uint32, passwordMd5 [16]byte, guidAvailable bool, guid, tgtgtKey []byte) []byte {
