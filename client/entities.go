@@ -1,9 +1,9 @@
 package client
 
 import (
-	"github.com/Mrs4s/MiraiGo/binary/jce"
-	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/binary/jce"
+	"github.com/wfjsw/MiraiGo/message"
 )
 
 var (

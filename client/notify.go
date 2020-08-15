@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/Mrs4s/MiraiGo/client/pb/notify"
+	"github.com/wfjsw/MiraiGo/client/pb/notify"
 )
 
 type (

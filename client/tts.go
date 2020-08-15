@@ -3,11 +3,11 @@ package client
 import (
 	"fmt"
 
-	"github.com/Mrs4s/MiraiGo/binary"
-	"github.com/Mrs4s/MiraiGo/client/pb/richmedia"
-	"github.com/Mrs4s/MiraiGo/utils"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/binary"
+	"github.com/wfjsw/MiraiGo/client/pb/richmedia"
+	"github.com/wfjsw/MiraiGo/utils"
 )
 
 func (c *QQClient) GetTts(text string) ([]byte, error) {

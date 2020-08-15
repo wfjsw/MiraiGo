@@ -16,15 +16,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Mrs4s/MiraiGo/binary"
-	"github.com/Mrs4s/MiraiGo/binary/jce"
-	"github.com/Mrs4s/MiraiGo/client/pb/msg"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/MiraiGo/protocol/crypto"
-	"github.com/Mrs4s/MiraiGo/protocol/packets"
-	"github.com/Mrs4s/MiraiGo/utils"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/binary"
+	"github.com/wfjsw/MiraiGo/binary/jce"
+	"github.com/wfjsw/MiraiGo/client/pb/msg"
+	"github.com/wfjsw/MiraiGo/message"
+	"github.com/wfjsw/MiraiGo/protocol/packets"
+	"github.com/wfjsw/MiraiGo/utils"
 )
 
 var json = jsoniter.ConfigFastest
@@ -81,8 +80,16 @@ type QQClient struct {
 	fileStorageInfo  *jce.FileStoragePushFSSvcList
 	pwdFlag          bool
 
+	openId   []byte
+	openKey  []byte
+	payToken []byte
+	pf       []byte
+	pfkey    []byte
+	a1       []byte
+	noPicSig []byte
+
 	lastMessageSeq int32
-	//lastMessageSeqTmp      sync.Map
+	// lastMessageSeqTmp      sync.Map
 	msgSvcCache            *utils.Cache
 	transCache             *utils.Cache
 	lastLostMsg            string
@@ -650,6 +657,10 @@ func (c *QQClient) getCookies() string {
 	return fmt.Sprintf("uin=o%d; skey=%s;", c.Uin, c.getSKey())
 }
 
+func (c *QQClient) GetCookies() string {
+	return c.getCookies()
+}
+
 func (c *QQClient) getCookiesWithDomain(domain string) string {
 	cookie := c.getCookies()
 
@@ -660,12 +671,20 @@ func (c *QQClient) getCookiesWithDomain(domain string) string {
 	}
 }
 
+func (c *QQClient) GetCookiesWithDomain(domain string) string {
+	return c.getCookiesWithDomain(domain)
+}
+
 func (c *QQClient) getCSRFToken() int {
 	accu := 5381
 	for _, b := range c.sigInfo.sKey {
 		accu = accu + (accu << 5) + int(b)
 	}
 	return 2147483647 & accu
+}
+
+func (c *QQClient) GetCSRFToken() int {
+	return c.getCSRFToken()
 }
 
 func (c *QQClient) getMemberInfo(groupCode, memberUin int64) (*GroupMemberInfo, error) {

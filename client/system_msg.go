@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/Mrs4s/MiraiGo/client/pb/structmsg"
-	"github.com/Mrs4s/MiraiGo/protocol/packets"
+	"github.com/wfjsw/MiraiGo/client/pb/structmsg"
+	"github.com/wfjsw/MiraiGo/protocol/packets"
 	"google.golang.org/protobuf/proto"
 )
 

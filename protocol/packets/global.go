@@ -3,9 +3,9 @@ package packets
 import (
 	"strconv"
 
-	"github.com/Mrs4s/MiraiGo/binary"
-	"github.com/Mrs4s/MiraiGo/protocol/crypto"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/binary"
+	"github.com/wfjsw/MiraiGo/protocol/crypto"
 )
 
 var ErrUnknownFlag = errors.New("unknown flag")

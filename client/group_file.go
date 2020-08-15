@@ -12,11 +12,11 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/Mrs4s/MiraiGo/client/pb/exciting"
-	"github.com/Mrs4s/MiraiGo/client/pb/oidb"
-	"github.com/Mrs4s/MiraiGo/protocol/packets"
-	"github.com/Mrs4s/MiraiGo/utils"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/client/pb/exciting"
+	"github.com/wfjsw/MiraiGo/client/pb/oidb"
+	"github.com/wfjsw/MiraiGo/protocol/packets"
+	"github.com/wfjsw/MiraiGo/utils"
 )
 
 type (

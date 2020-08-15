@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 	"sync"
 
-	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/wfjsw/MiraiGo/message"
 )
 
 type eventHandlers struct {

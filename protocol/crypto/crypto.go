@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Mrs4s/MiraiGo/binary"
+	"github.com/wfjsw/MiraiGo/binary"
 	jsoniter "github.com/json-iterator/go"
 )
 

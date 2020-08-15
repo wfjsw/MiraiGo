@@ -11,8 +11,8 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/Mrs4s/MiraiGo/utils"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/utils"
 )
 
 type noticePicUpResponse struct {

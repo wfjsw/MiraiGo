@@ -5,14 +5,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Mrs4s/MiraiGo/binary/jce"
-	"github.com/Mrs4s/MiraiGo/client/pb/msf"
-	"github.com/Mrs4s/MiraiGo/client/pb/msg"
-	"github.com/Mrs4s/MiraiGo/client/pb/oidb"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/MiraiGo/protocol/packets"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/binary/jce"
+	"github.com/wfjsw/MiraiGo/client/pb/msf"
+	"github.com/wfjsw/MiraiGo/client/pb/msg"
+	"github.com/wfjsw/MiraiGo/client/pb/oidb"
+	"github.com/wfjsw/MiraiGo/message"
+	"github.com/wfjsw/MiraiGo/protocol/packets"
 )
 
 func init() {

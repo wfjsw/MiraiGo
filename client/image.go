@@ -9,13 +9,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Mrs4s/MiraiGo/binary"
-	"github.com/Mrs4s/MiraiGo/client/pb"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/MiraiGo/protocol/packets"
-	"github.com/Mrs4s/MiraiGo/utils"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/binary"
+	"github.com/wfjsw/MiraiGo/client/pb"
+	"github.com/wfjsw/MiraiGo/message"
+	"github.com/wfjsw/MiraiGo/protocol/packets"
+	"github.com/wfjsw/MiraiGo/utils"
 )
 
 func init() {

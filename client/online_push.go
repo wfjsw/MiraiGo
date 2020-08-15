@@ -5,13 +5,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Mrs4s/MiraiGo/client/pb/msgtype0x210"
-
-	"github.com/Mrs4s/MiraiGo/binary"
-	"github.com/Mrs4s/MiraiGo/binary/jce"
-	"github.com/Mrs4s/MiraiGo/client/pb"
-	"github.com/Mrs4s/MiraiGo/client/pb/notify"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/binary"
+	"github.com/wfjsw/MiraiGo/binary/jce"
+	"github.com/wfjsw/MiraiGo/client/pb"
+	"github.com/wfjsw/MiraiGo/client/pb/msgtype0x210"
+	"github.com/wfjsw/MiraiGo/client/pb/notify"
 	"google.golang.org/protobuf/proto"
 )
 

@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/Mrs4s/MiraiGo/utils"
+	"github.com/wfjsw/MiraiGo/utils"
 )
 
 var testTEA = NewTeaCipher([]byte("0123456789ABCDEF"))

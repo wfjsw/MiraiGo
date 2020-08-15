@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Mrs4s/MiraiGo/binary"
-	"github.com/Mrs4s/MiraiGo/client/pb/msg"
-	"github.com/Mrs4s/MiraiGo/utils"
 	"github.com/golang/protobuf/proto"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/wfjsw/MiraiGo/binary"
+	"github.com/wfjsw/MiraiGo/client/pb/msg"
+	"github.com/wfjsw/MiraiGo/utils"
 )
 
 var json = jsoniter.ConfigFastest

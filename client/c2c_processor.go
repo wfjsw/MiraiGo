@@ -5,11 +5,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Mrs4s/MiraiGo/binary"
+	"github.com/wfjsw/MiraiGo/binary"
 
-	"github.com/Mrs4s/MiraiGo/client/pb"
-	"github.com/Mrs4s/MiraiGo/client/pb/msg"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/client/pb"
+	"github.com/wfjsw/MiraiGo/client/pb/msg"
 	"google.golang.org/protobuf/proto"
 )
 

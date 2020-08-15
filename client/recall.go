@@ -1,10 +1,10 @@
 package client
 
 import (
-	"github.com/Mrs4s/MiraiGo/client/pb/msg"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/MiraiGo/protocol/packets"
 	"github.com/pkg/errors"
+	"github.com/wfjsw/MiraiGo/client/pb/msg"
+	"github.com/wfjsw/MiraiGo/message"
+	"github.com/wfjsw/MiraiGo/protocol/packets"
 	"google.golang.org/protobuf/proto"
 )
 
