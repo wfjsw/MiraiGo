@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
+	"strings"
+	"time"
 
 	"github.com/wfjsw/MiraiGo/binary"
 	devinfo "github.com/wfjsw/MiraiGo/client/pb"
@@ -69,25 +71,26 @@ type groupMessageBuilder struct {
 
 // default
 var SystemDeviceInfo = &DeviceInfo{
-	Display:     []byte("MIRAI.123456.001"),
-	Product:     []byte("mirai"),
-	Device:      []byte("mirai"),
-	Board:       []byte("mirai"),
-	Brand:       []byte("mamoe"),
-	Model:       []byte("mirai"),
+	// Display:     []byte("MIRAI.123456.001"),
+	Display:     []byte("OPPO R9sk"),
+	Product:     []byte("OPPO R9sk"),
+	Device:      []byte("OPPO R9sk"),
+	Board:       []byte("msm8953"),
+	Brand:       []byte("OPPO"),
+	Model:       []byte("OPPO R9sk (R9sk)"),
 	Bootloader:  []byte("unknown"),
-	FingerPrint: []byte("mamoe/mirai/mirai:10/MIRAI.200122.001/1234567:user/release-keys"),
+	FingerPrint: []byte("OPPO/R9sk/R9sk:6.0.1/MMB29M/1234567890:user/release-keys"),
 	BootId:      []byte("cb886ae2-00b6-4d68-a230-787f111d12c7"),
-	ProcVersion: []byte("Linux version 3.0.31-cb886ae2 (android-build@xxx.xxx.xxx.xxx.com)"),
+	ProcVersion: []byte("Linux version 3.18.24-perf-cb886ae2 (eng.root.20170603.124902)"),
 	BaseBand:    []byte{},
-	SimInfo:     []byte("T-Mobile"),
+	SimInfo:     []byte("CMCC"),
 	OSType:      []byte("android"),
 	MacAddress:  []byte("00:50:56:C0:00:08"),
 	IpAddress:   []byte{10, 0, 1, 3}, // 10.0.1.3
 	WifiBSSID:   []byte("00:50:56:C0:00:08"),
 	WifiSSID:    []byte("<unknown ssid>"),
 	IMEI:        "468356291846738",
-	AndroidId:   []byte("MIRAI.123456.001"),
+	AndroidId:   []byte("123456789abcdef"),
 	APN:         []byte("wifi"),
 	Version: &Version{
 		Incremental: []byte("5891938"),
@@ -96,6 +99,8 @@ var SystemDeviceInfo = &DeviceInfo{
 		Sdk:         29,
 	},
 }
+
+const IMEI_BASE_DIGITS_COUNT int = 14
 
 var EmptyBytes = []byte{}
 var NumberRange = "0123456789"
@@ -109,18 +114,42 @@ func init() {
 	SystemDeviceInfo.GenNewTgtgtKey()
 }
 
+func GenIMEI() string {
+	sum := 0 // the control sum of digits
+	var final strings.Builder
+
+	randSrc := rand.NewSource(time.Now().UnixNano())
+	randGen := rand.New(randSrc)
+
+	for i := 0; i < IMEI_BASE_DIGITS_COUNT; i++ { // generating all the base digits
+		toAdd := randGen.Intn(10)
+		if (i+1)%2 == 0 { // special proc for every 2nd one
+			toAdd *= 2
+			if toAdd >= 10 {
+				toAdd = (toAdd % 10) + 1
+			}
+		}
+		sum += toAdd
+		final.WriteString(fmt.Sprintf("%d", toAdd)) // and even printing them here!
+	}
+	var ctrlDigit int = (sum * 9) % 10 // calculating the control digit
+	final.WriteString(fmt.Sprintf("%d", ctrlDigit))
+	return final.String()
+}
+
 func GenRandomDevice() {
 	r := make([]byte, 16)
 	rand.Read(r)
-	SystemDeviceInfo.Display = []byte("MIRAI." + utils.RandomStringRange(6, NumberRange) + ".001")
-	SystemDeviceInfo.FingerPrint = []byte("mamoe/mirai/mirai:10/MIRAI.200122.001/" + utils.RandomStringRange(7, NumberRange) + ":user/release-keys")
+	// SystemDeviceInfo.Display = []byte("MIRAI." + utils.RandomStringRange(6, NumberRange) + ".001")
+	SystemDeviceInfo.Display = []byte("OPPO R9sk - " + utils.RandomStringRange(6, NumberRange))
+	SystemDeviceInfo.FingerPrint = []byte("OPPO/R9sk/R9sk:6.0.1/MMB29M/" + utils.RandomStringRange(10, NumberRange) + ":user/release-keys")
 	SystemDeviceInfo.BootId = []byte(binary.GenUUID(r))
-	SystemDeviceInfo.ProcVersion = []byte("Linux version 3.0.31-" + utils.RandomString(8) + " (android-build@xxx.xxx.xxx.xxx.com)")
+	SystemDeviceInfo.ProcVersion = []byte("Linux version 3.18.24-perf-" + utils.RandomString(8) + " (eng.root.20170603.124902)")
 	rand.Read(r)
 	t := md5.Sum(r)
 	SystemDeviceInfo.IMSIMd5 = t[:]
-	SystemDeviceInfo.IMEI = utils.RandomStringRange(15, NumberRange)
-	SystemDeviceInfo.AndroidId = SystemDeviceInfo.Display
+	SystemDeviceInfo.IMEI = GenIMEI()
+	SystemDeviceInfo.AndroidId = []byte(utils.RandomString(15))
 	SystemDeviceInfo.GenNewGuid()
 	SystemDeviceInfo.GenNewTgtgtKey()
 }
