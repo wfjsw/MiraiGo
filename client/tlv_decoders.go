@@ -160,18 +160,23 @@ func readT531(data []byte) (a1, noPicSig []byte) {
 
 func readT512(data []byte) (psKeyMap map[string][]byte, pt4TokenMap map[string][]byte) {
 	reader := binary.NewReader(data)
-	len := int(reader.ReadUInt16())
+	length := int(reader.ReadUInt16())
 
-	psKeyMap = make(map[string][]byte, len)
-	pt4TokenMap = make(map[string][]byte, len)
+	psKeyMap = make(map[string][]byte, length)
+	pt4TokenMap = make(map[string][]byte, length)
 
-	for i := 0; i < len; i++ {
+	for i := 0; i < length; i++ {
 		domain := reader.ReadStringShort()
 		psKey := reader.ReadBytesShort()
 		pt4Token := reader.ReadBytesShort()
 
-		psKeyMap[domain] = psKey
-		pt4TokenMap[domain] = pt4Token
+		if len(psKey) > 0 {
+			psKeyMap[domain] = psKey
+		}
+
+		if len(pt4Token) > 0 {
+			pt4TokenMap[domain] = pt4Token
+		}
 	}
 
 	return
