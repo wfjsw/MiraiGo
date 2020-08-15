@@ -650,6 +650,28 @@ func (c *QQClient) SolveFriendRequest(req *NewFriendRequest, accept bool) {
 	_ = c.send(pkt)
 }
 
+func (c *QQClient) GetCookies() string {
+	return fmt.Sprintf("uin=o%d; skey=%s;", c.Uin, c.sigInfo.sKey)
+}
+
+func (c *QQClient) GetCookiesWithDomain(domain string) string {
+	cookie := c.GetCookies()
+
+	if psKey, ok := c.sigInfo.psKeyMap[domain]; ok {
+		return fmt.Sprintf("%s p_uin=o%d; p_skey=%s", cookie, c.Uin, psKey)
+	} else {
+		return cookie
+	}
+}
+
+func (c *QQClient) GetCSRFToken() int {
+	accu := 5381
+	for _, b := range c.sigInfo.sKey {
+		accu = accu + (accu << 5) + int(b)
+	}
+	return accu
+}
+
 func (g *GroupInfo) SelfPermission() MemberPermission {
 	return g.FindMember(g.client.Uin).Permission
 }

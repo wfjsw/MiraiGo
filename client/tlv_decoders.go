@@ -41,22 +41,24 @@ func (c *QQClient) decodeT119(data []byte) {
 	}
 
 	var (
-		//openId   []byte
-		//openKey  []byte
-		//payToken []byte
-		//pf       []byte
-		//pfkey    []byte
+		// openId   []byte
+		// openKey  []byte
+		// payToken []byte
+		// pf       []byte
+		// pfkey    []byte
 		gender uint16 = 0
 		age    uint16 = 0
 		nick          = ""
-		//a1       []byte
-		//noPicSig []byte
+		// a1       []byte
+		// noPicSig []byte
+		psKeyMap    map[string][]byte
+		pt4TokenMap map[string][]byte
 		//ctime           = time.Now().Unix()
 		//etime           = ctime + 2160000
 	)
 
-	if _, ok := m[0x125]; ok {
-		//openId, openKey = readT125(t125)
+	if t125, ok := m[0x125]; ok {
+		c.openId, c.openKey = readT125(t125)
 	}
 	if t186, ok := m[0x186]; ok {
 		c.decodeT186(t186)
@@ -64,17 +66,17 @@ func (c *QQClient) decodeT119(data []byte) {
 	if t11a, ok := m[0x11a]; ok {
 		nick, age, gender = readT11A(t11a)
 	}
-	if _, ok := m[0x199]; ok {
-		//openId, payToken = readT199(t199)
+	if t199, ok := m[0x199]; ok {
+		c.openId, c.payToken = readT199(t199)
 	}
-	if _, ok := m[0x200]; ok {
-		//pf, pfkey = readT200(t200)
+	if t200, ok := m[0x200]; ok {
+		c.pf, c.pfkey = readT200(t200)
 	}
-	if _, ok := m[0x512]; ok {
-
-	} // 暂不处理, Http api cookie
-	if _, ok := m[0x531]; ok {
-		//a1, noPicSig = readT531(t531)
+	if t512, ok := m[0x512]; ok {
+		psKeyMap, pt4TokenMap = readT512(t512)
+	}
+	if t531, ok := m[0x531]; ok {
+		c.a1, c.noPicSig = readT531(t531)
 	}
 
 	c.sigInfo = &loginSigInfo{
@@ -88,6 +90,9 @@ func (c *QQClient) decodeT119(data []byte) {
 		d2Key:              m[0x305],
 		wtSessionTicketKey: m[0x134],
 		deviceToken:        m[0x322],
+
+		psKeyMap:    psKeyMap,
+		pt4TokenMap: pt4TokenMap,
 	}
 	c.Nickname = nick
 	c.Age = age
@@ -150,5 +155,24 @@ func readT531(data []byte) (a1, noPicSig []byte) {
 		a1 = append(m[0x106], m[0x10c]...)
 		noPicSig = m[0x16a]
 	}
+	return
+}
+
+func readT512(data []byte) (psKeyMap map[string][]byte, pt4TokenMap map[string][]byte) {
+	reader := binary.NewReader(data)
+	len := int(reader.ReadUInt16())
+
+	psKeyMap = make(map[string][]byte, len)
+	pt4TokenMap = make(map[string][]byte, len)
+
+	for i := 0; i < len; i++ {
+		domain := reader.ReadStringShort()
+		psKey := reader.ReadBytesShort()
+		pt4Token := reader.ReadBytesShort()
+
+		psKeyMap[domain] = psKey
+		pt4TokenMap[domain] = pt4Token
+	}
+
 	return
 }
