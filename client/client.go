@@ -669,7 +669,7 @@ func (c *QQClient) GetCSRFToken() int {
 	for _, b := range c.sigInfo.sKey {
 		accu = accu + (accu << 5) + int(b)
 	}
-	return accu
+	return 2147483647 & accu
 }
 
 func (g *GroupInfo) SelfPermission() MemberPermission {
