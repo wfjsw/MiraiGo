@@ -658,7 +658,7 @@ func (c *QQClient) GetCookiesWithDomain(domain string) string {
 	cookie := c.GetCookies()
 
 	if psKey, ok := c.sigInfo.psKeyMap[domain]; ok {
-		return fmt.Sprintf("%s p_uin=o%d; p_skey=%s", cookie, c.Uin, psKey)
+		return fmt.Sprintf("%s p_uin=o%d; p_skey=%s;", cookie, c.Uin, psKey)
 	} else {
 		return cookie
 	}
