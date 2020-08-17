@@ -935,7 +935,7 @@ func (c *QQClient) netLoop() {
 			}()
 			decoder, ok := c.decoders[pkt.CommandName]
 			if !ok {
-				log.Output(1, "Unknown Command "+pkt.CommandName)
+				// log.Output(1, "Unknown Command "+pkt.CommandName)
 				if f, ok := c.handlers.Load(pkt.SequenceId); ok {
 					c.handlers.Delete(pkt.SequenceId)
 					f.(func(i interface{}, err error))(nil, nil)
