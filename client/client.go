@@ -308,7 +308,7 @@ func (c *QQClient) SendPrivateMessage(target int64, m *message.SendingMessage) *
 		for _, elem := range m.Elements {
 			switch o := elem.(type) {
 			case *message.TextElement:
-				for _, text := range utils.ChunkString(o.Content, 300) {
+				for _, text := range utils.ChunkString(o.Content, 220) {
 					fragmented = append(fragmented, []message.IMessageElement{message.NewText(text)})
 				}
 			default:
@@ -741,6 +741,28 @@ func (g *GroupInfo) FindMember(uin int64) *GroupMemberInfo {
 		}
 	}
 	return nil
+}
+
+func (c *QQClient) getCookies() string {
+	return fmt.Sprintf("uin=o%d; skey=%s;", c.Uin, c.sigInfo.sKey)
+}
+
+func (c *QQClient) getCookiesWithDomain(domain string) string {
+	cookie := c.getCookies()
+
+	if psKey, ok := c.sigInfo.psKeyMap[domain]; ok {
+		return fmt.Sprintf("%s p_uin=o%d; p_skey=%s;", cookie, c.Uin, psKey)
+	} else {
+		return cookie
+	}
+}
+
+func (c *QQClient) getCSRFToken() int {
+	accu := 5381
+	for _, b := range c.sigInfo.sKey {
+		accu = accu + (accu << 5) + int(b)
+	}
+	return 2147483647 & accu
 }
 
 func (c *QQClient) editMemberCard(groupCode, memberUin int64, card string) {

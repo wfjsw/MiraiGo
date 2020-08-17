@@ -148,16 +148,6 @@ func readT200(data []byte) (pf, pfKey []byte) {
 	return
 }
 
-func readT531(data []byte) (a1, noPicSig []byte) {
-	reader := binary.NewReader(data)
-	m := reader.ReadTlvMap(2)
-	if m.Exists(0x103) && m.Exists(0x16a) && m.Exists(0x113) && m.Exists(0x10c) {
-		a1 = append(m[0x106], m[0x10c]...)
-		noPicSig = m[0x16a]
-	}
-	return
-}
-
 func readT512(data []byte) (psKeyMap map[string][]byte, pt4TokenMap map[string][]byte) {
 	reader := binary.NewReader(data)
 	length := int(reader.ReadUInt16())
@@ -179,5 +169,15 @@ func readT512(data []byte) (psKeyMap map[string][]byte, pt4TokenMap map[string][
 		}
 	}
 
+	return
+}
+
+func readT531(data []byte) (a1, noPicSig []byte) {
+	reader := binary.NewReader(data)
+	m := reader.ReadTlvMap(2)
+	if m.Exists(0x103) && m.Exists(0x16a) && m.Exists(0x113) && m.Exists(0x10c) {
+		a1 = append(m[0x106], m[0x10c]...)
+		noPicSig = m[0x16a]
+	}
 	return
 }
