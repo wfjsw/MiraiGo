@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -166,6 +165,9 @@ func decodeMessageSvcPacket(c *QQClient, _ uint16, payload []byte) (interface{},
 			if message.Head.ToUin != c.Uin {
 				continue
 			}
+			if (int64(pairMsg.LastReadTime) & 4294967295) > int64(message.Head.MsgTime) {
+				continue
+			}
 			switch message.Head.MsgType {
 			case 33: // 加群同步
 				groupJoinLock.Lock()
@@ -211,15 +213,7 @@ func decodeMessageSvcPacket(c *QQClient, _ uint16, payload []byte) (interface{},
 				if mem == nil || message.Head.FromUin == c.Uin {
 					continue
 				}
-				lastSeq, ok := c.lastMessageSeqTmp.Load(mem.Uin)
-				if !ok {
-					c.lastMessageSeqTmp.Store(mem.Uin, int32(-1))
-					lastSeq = int32(-1)
-				}
-				if message.Head.MsgSeq > lastSeq.(int32) {
-					c.lastMessageSeqTmp.Store(mem.Uin, message.Head.MsgSeq)
-					c.dispatchTempMessage(c.parseTempMessage(message))
-				}
+				c.dispatchTempMessage(c.parseTempMessage(message))
 			case 166: // 好友消息
 				if message.Head.FromUin == c.Uin {
 					for {
@@ -236,18 +230,20 @@ func decodeMessageSvcPacket(c *QQClient, _ uint16, payload []byte) (interface{},
 				if message.Body.RichText == nil || message.Body.RichText.Elems == nil {
 					continue
 				}
-				friend := c.FindFriend(message.Head.FromUin)
-				if friend == nil {
-					return nil, nil
-				}
-				if friend.msgSeqList == nil {
-					friend.msgSeqList = utils.NewCache(time.Second * 5)
-				}
-				strSeq := strconv.FormatInt(int64(message.Head.MsgSeq), 10)
-				if _, ok := friend.msgSeqList.Get(strSeq); ok {
-					continue
-				}
-				friend.msgSeqList.Add(strSeq, 0, time.Minute*15)
+				//friend := c.FindFriend(message.Head.FromUin)
+				/*
+					if friend == nil {
+						return nil, nil
+					}
+					if friend.msgSeqList == nil {
+						friend.msgSeqList = utils.NewCache(time.Second * 5)
+					}
+					strSeq := strconv.FormatInt(int64(message.Head.MsgSeq), 10)
+					if _, ok := friend.msgSeqList.Get(strSeq); ok {
+						continue
+					}
+					friend.msgSeqList.Add(strSeq, 0, time.Minute*15)
+				*/
 				c.dispatchFriendMessage(c.parsePrivateMessage(message))
 			case 187:
 				_, pkt := c.buildSystemMsgNewFriendPacket()
@@ -255,11 +251,9 @@ func decodeMessageSvcPacket(c *QQClient, _ uint16, payload []byte) (interface{},
 			}
 		}
 	}
-	_, delPkt := c.buildDeleteMessageRequestPacket(delItems)
-	_ = c.send(delPkt)
+	_, _ = c.sendAndWait(c.buildDeleteMessageRequestPacket(delItems))
 	if rsp.SyncFlag != msg.SyncFlag_STOP {
-		_, nextPkt := c.buildGetMessageRequestPacket(rsp.SyncFlag, time.Now().Unix())
-		_ = c.send(nextPkt)
+		_, _ = c.sendAndWait(c.buildGetMessageRequestPacket(rsp.SyncFlag, time.Now().Unix()))
 	}
 	return nil, err
 }
@@ -301,8 +295,10 @@ func decodeGroupMessagePacket(c *QQClient, _ uint16, payload []byte) (interface{
 }
 
 func decodeSvcNotify(c *QQClient, _ uint16, _ []byte) (interface{}, error) {
-	_, pkt := c.buildGetMessageRequestPacket(msg.SyncFlag_START, time.Now().Unix())
-	return nil, c.send(pkt)
+	c.msgSvcLock.Lock()
+	defer c.msgSvcLock.Unlock()
+	_, err := c.sendAndWait(c.buildGetMessageRequestPacket(msg.SyncFlag_START, time.Now().Unix()))
+	return nil, err
 }
 
 func decodeFriendGroupListResponse(_ *QQClient, _ uint16, payload []byte) (interface{}, error) {

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
@@ -66,8 +67,8 @@ type QQClient struct {
 	a1       []byte
 	noPicSig []byte
 
-	lastMessageSeq         int32
-	lastMessageSeqTmp      sync.Map
+	lastMessageSeq int32
+	// lastMessageSeqTmp      sync.Map
 	lastLostMsg            string
 	groupMsgBuilders       sync.Map
 	onlinePushCache        []int16 // reset on reconnect
@@ -79,6 +80,7 @@ type QQClient struct {
 	eventHandlers          *eventHandlers
 
 	groupListLock *sync.Mutex
+	msgSvcLock    sync.Mutex
 }
 
 type loginSigInfo struct {
@@ -146,6 +148,7 @@ func NewClientMd5(uin int64, passwordMd5 [16]byte) *QQClient {
 		ksid:                   []byte("|454001228437590|A8.2.7.27f6ea96"),
 		eventHandlers:          &eventHandlers{},
 		groupListLock:          new(sync.Mutex),
+		//msgSvcCache:            utils.NewCache(time.Second * 5),
 	}
 	rand.Read(cli.RandomKey)
 	return cli
@@ -510,8 +513,13 @@ func (c *QQClient) uploadPrivateImage(target int64, img []byte, count int) (*mes
 
 func (c *QQClient) UploadGroupPtt(groupCode int64, voice []byte) (*message.GroupVoiceElement, error) {
 	h := md5.Sum(voice)
-	voiceLength := utils.GetAmrDuration(voice)
-	seq, pkt := c.buildGroupPttStorePacket(groupCode, h[:], int32(len(voice)), voiceLength)
+	codec := func() int32 {
+		if bytes.HasPrefix(voice, []byte("#!AMR")) {
+			return 0
+		}
+		return 1
+	}()
+	seq, pkt := c.buildGroupPttStorePacket(groupCode, h[:], int32(len(voice)), codec, int32(len(voice)))
 	r, err := c.sendAndWait(seq, pkt)
 	if err != nil {
 		return nil, err
@@ -974,6 +982,7 @@ func (c *QQClient) netLoop() {
 			}
 		}()
 	}
+	c.Online = false
 	_ = c.Conn.Close()
 	if c.lastLostMsg == "" {
 		c.lastLostMsg = "Connection lost."
