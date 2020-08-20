@@ -4,8 +4,6 @@ import (
 	"errors"
 	"strings"
 	"sync"
-
-	"github.com/wfjsw/MiraiGo/utils"
 )
 
 var (

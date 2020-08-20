@@ -732,25 +732,15 @@ func (c *QQClient) SolveFriendRequest(req *NewFriendRequest, accept bool) {
 }
 
 func (c *QQClient) GetCookies() string {
-	return fmt.Sprintf("uin=o%d; skey=%s;", c.Uin, c.sigInfo.sKey)
+	return c.getCookies()
 }
 
 func (c *QQClient) GetCookiesWithDomain(domain string) string {
-	cookie := c.GetCookies()
-
-	if psKey, ok := c.sigInfo.psKeyMap[domain]; ok {
-		return fmt.Sprintf("%s p_uin=o%d; p_skey=%s;", cookie, c.Uin, psKey)
-	} else {
-		return cookie
-	}
+	return c.getCookiesWithDomain(domain)
 }
 
 func (c *QQClient) GetCSRFToken() int {
-	accu := 5381
-	for _, b := range c.sigInfo.sKey {
-		accu = accu + (accu << 5) + int(b)
-	}
-	return 2147483647 & accu
+	return c.getCSRFToken()
 }
 
 func (g *GroupInfo) SelfPermission() MemberPermission {
