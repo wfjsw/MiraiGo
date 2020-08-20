@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"math"
 	"math/rand"
 	"net"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -69,6 +71,8 @@ type QQClient struct {
 
 	lastMessageSeq int32
 	// lastMessageSeqTmp      sync.Map
+	msgSvcCache            *utils.Cache
+	transCache             *utils.Cache
 	lastLostMsg            string
 	groupMsgBuilders       sync.Map
 	onlinePushCache        []int16 // reset on reconnect
@@ -148,7 +152,8 @@ func NewClientMd5(uin int64, passwordMd5 [16]byte) *QQClient {
 		ksid:                   []byte("|454001228437590|A8.2.7.27f6ea96"),
 		eventHandlers:          &eventHandlers{},
 		groupListLock:          new(sync.Mutex),
-		//msgSvcCache:            utils.NewCache(time.Second * 5),
+		msgSvcCache:            utils.NewCache(time.Second * 15),
+		transCache:             utils.NewCache(time.Second * 15),
 	}
 	rand.Read(cli.RandomKey)
 	return cli
@@ -179,6 +184,21 @@ func (c *QQClient) Login() (*LoginResponse, error) {
 		_, _ = c.sendAndWait(c.buildGetMessageRequestPacket(msg.SyncFlag_START, time.Now().Unix()))
 	}
 	return &l, nil
+}
+
+func (c *QQClient) GetGroupHonorInfo(groupCode int64, honorType HonorType) (*GroupHonorInfo, error) {
+	b, err := utils.HttpGetBytes(fmt.Sprintf("https://qun.qq.com/interactive/honorlist?gc=%d&type=%d", groupCode, honorType), c.getCookiesWithDomain("qun.qq.com"))
+	if err != nil {
+		return nil, err
+	}
+	rsp := string(b)
+	data := strings.Split(strings.Split(rsp, `window.__INITIAL_STATE__=`)[1], "</script>")[0]
+	ret := GroupHonorInfo{}
+	err = json.Unmarshal([]byte(data), &ret)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
 }
 
 // SubmitCaptcha send captcha to server
@@ -907,7 +927,7 @@ func (c *QQClient) sendAndWait(seq uint16, pkt []byte) (interface{}, error) {
 		select {
 		case rsp := <-ch:
 			return rsp.Response, rsp.Error
-		case <-time.After(time.Second * 15):
+		case <-time.After(time.Second * 30):
 			retry++
 			if retry < 2 {
 				_ = c.send(pkt)

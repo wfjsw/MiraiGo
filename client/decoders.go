@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -168,6 +169,11 @@ func decodeMessageSvcPacket(c *QQClient, _ uint16, payload []byte) (interface{},
 			if (int64(pairMsg.LastReadTime) & 4294967295) > int64(message.Head.MsgTime) {
 				continue
 			}
+			strKey := strconv.FormatInt(message.Head.MsgUid, 10)
+			if _, ok := c.msgSvcCache.Get(strKey); ok {
+				continue
+			}
+			c.msgSvcCache.Add(strKey, "", time.Second*15)
 			switch message.Head.MsgType {
 			case 33: // 加群同步
 				groupJoinLock.Lock()
@@ -587,6 +593,11 @@ func decodeOnlinePushTransPacket(c *QQClient, _ uint16, payload []byte) (interfa
 		return nil, err
 	}
 	data := binary.NewReader(info.MsgData)
+	idStr := strconv.FormatInt(info.MsgUid, 10)
+	if _, ok := c.transCache.Get(idStr); ok {
+		return nil, nil
+	}
+	c.transCache.Add(idStr, "", time.Second*15)
 	if info.MsgType == 34 {
 		data.ReadInt32()
 		data.ReadByte()
@@ -594,37 +605,42 @@ func decodeOnlinePushTransPacket(c *QQClient, _ uint16, payload []byte) (interfa
 		typ := int32(data.ReadByte())
 		operator := int64(uint32(data.ReadInt32()))
 		if g := c.FindGroupByUin(info.FromUin); g != nil {
+			groupLeaveLock.Lock()
+			defer groupLeaveLock.Unlock()
 			switch typ {
+			case 0x02:
+				if target == c.Uin {
+					c.dispatchLeaveGroupEvent(&GroupLeaveEvent{Group: g})
+				} else {
+					if m := g.FindMember(target); m != nil {
+						g.removeMember(target)
+						c.dispatchMemberLeaveEvent(&MemberLeaveGroupEvent{
+							Group:  g,
+							Member: m,
+						})
+					}
+				}
 			case 0x03:
-				groupLeaveLock.Lock()
-				defer groupLeaveLock.Unlock()
 				if err = c.ReloadGroupList(); err != nil {
 					return nil, err
 				}
-				c.dispatchLeaveGroupEvent(&GroupLeaveEvent{
-					Group:    g,
-					Operator: g.FindMember(operator),
-				})
-			case 0x82:
-				if m := g.FindMember(target); m != nil {
-					g.removeMember(m.Uin)
-					c.dispatchMemberLeaveEvent(&MemberLeaveGroupEvent{
-						Group:  g,
-						Member: m,
-					})
-				}
-			case 0x83:
-				if m := g.FindMember(target); m != nil {
-					g.removeMember(m.Uin)
-					c.dispatchMemberLeaveEvent(&MemberLeaveGroupEvent{
+				if target == c.Uin {
+					c.dispatchLeaveGroupEvent(&GroupLeaveEvent{
 						Group:    g,
-						Member:   m,
 						Operator: g.FindMember(operator),
 					})
+				} else {
+					if m := g.FindMember(target); m != nil {
+						g.removeMember(target)
+						c.dispatchMemberLeaveEvent(&MemberLeaveGroupEvent{
+							Group:    g,
+							Member:   m,
+							Operator: g.FindMember(operator),
+						})
+					}
 				}
 			}
 		}
-
 	}
 	if info.MsgType == 44 {
 		data.ReadBytes(5)
@@ -778,7 +794,7 @@ func decodeMultiApplyDownResponse(c *QQClient, _ uint16, payload []byte) (interf
 	}
 	rsp := body.MultimsgApplydownRsp[0]
 	i := binary.UInt32ToIPV4Address(uint32(rsp.Uint32DownIp[0]))
-	b, err := utils.HttpGetBytes(fmt.Sprintf("http://%s:%d%s", i, body.MultimsgApplydownRsp[0].Uint32DownPort[0], string(rsp.ThumbDownPara)))
+	b, err := utils.HttpGetBytes(fmt.Sprintf("http://%s:%d%s", i, body.MultimsgApplydownRsp[0].Uint32DownPort[0], string(rsp.ThumbDownPara)), "")
 	if err != nil {
 		return nil, err
 	}
