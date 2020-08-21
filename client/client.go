@@ -848,11 +848,12 @@ func (c *QQClient) nextSeq() uint16 {
 	c.seqLock.Lock()
 	defer c.seqLock.Unlock()
 
-	if c.SequenceId <= 0x7FFF {
+	c.SequenceId++
+	c.SequenceId &= 0x7FFF
+	if c.SequenceId == 0 {
 		c.SequenceId++
-	} else {
-		c.SequenceId = 1
 	}
+
 	return c.SequenceId
 }
 
