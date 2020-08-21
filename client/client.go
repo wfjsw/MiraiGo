@@ -85,6 +85,8 @@ type QQClient struct {
 
 	groupListLock sync.Mutex
 	msgSvcLock    sync.Mutex
+
+	seqLock sync.Mutex
 }
 
 type loginSigInfo struct {
@@ -843,6 +845,9 @@ func (c *QQClient) registerClient() {
 }
 
 func (c *QQClient) nextSeq() uint16 {
+	c.seqLock.Lock()
+	defer c.seqLock.Unlock()
+
 	if c.SequenceId <= 0x7FFF {
 		c.SequenceId++
 	} else {
