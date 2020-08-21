@@ -946,7 +946,7 @@ func (c *QQClient) netLoop() {
 			defer func() {
 				if pan := recover(); pan != nil {
 					fmt.Println("panic on decoder:", pan)
-					fmt.Println(debug.Stack())
+					fmt.Printf("%s\n", debug.Stack())
 				}
 			}()
 			decoder, ok := c.decoders[pkt.CommandName]

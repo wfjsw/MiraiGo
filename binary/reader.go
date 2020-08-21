@@ -86,7 +86,7 @@ func (r *Reader) ReadTlvMap(tagSize int) (m TlvMap) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("panic on tlv map reader:", r)
-			fmt.Println(debug.Stack())
+			fmt.Printf("%s\n", debug.Stack())
 			// TODO: error
 		}
 	}()

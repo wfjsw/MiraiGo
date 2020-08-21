@@ -301,7 +301,7 @@ func cover(f func()) {
 	defer func() {
 		if pan := recover(); pan != nil {
 			fmt.Println("event error:", pan)
-			fmt.Println(debug.Stack())
+			fmt.Printf("%s\n", debug.Stack())
 		}
 	}()
 	f()
