@@ -13,7 +13,6 @@ import (
 	"math/rand"
 	"net"
 	"runtime/debug"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -39,7 +38,7 @@ type QQClient struct {
 	GroupList  []*GroupInfo
 	Online     bool
 
-	SequenceId              uint16
+	SequenceId              int32
 	OutGoingPacketSessionId []byte
 	RandomKey               []byte
 	Conn                    net.Conn
@@ -86,8 +85,6 @@ type QQClient struct {
 
 	groupListLock sync.Mutex
 	msgSvcLock    sync.Mutex
-
-	seqLock sync.Mutex
 }
 
 type loginSigInfo struct {
@@ -183,7 +180,6 @@ func (c *QQClient) Login() (*LoginResponse, error) {
 		c.lastLostMsg = ""
 		c.registerClient()
 		c.startHeartbeat()
-		_, _ = c.sendAndWait(c.buildGetMessageRequestPacket(msg.SyncFlag_START, time.Now().Unix()))
 	}
 	return &l, nil
 }
@@ -193,10 +189,10 @@ func (c *QQClient) GetGroupHonorInfo(groupCode int64, honorType HonorType) (*Gro
 	if err != nil {
 		return nil, err
 	}
-	rsp := string(b)
-	data := strings.Split(strings.Split(rsp, `window.__INITIAL_STATE__=`)[1], "</script>")[0]
+	b = b[bytes.Index(b, []byte(`window.__INITIAL_STATE__=`))+25:]
+	b = b[:bytes.Index(b, []byte("</script>"))]
 	ret := GroupHonorInfo{}
-	err = json.Unmarshal([]byte(data), &ret)
+	err = json.Unmarshal(b, &ret)
 	if err != nil {
 		return nil, err
 	}
@@ -846,16 +842,7 @@ func (c *QQClient) registerClient() {
 }
 
 func (c *QQClient) nextSeq() uint16 {
-	c.seqLock.Lock()
-	defer c.seqLock.Unlock()
-
-	c.SequenceId++
-	c.SequenceId &= 0x7FFF
-	if c.SequenceId == 0 {
-		c.SequenceId++
-	}
-
-	return c.SequenceId
+	return uint16(atomic.AddInt32(&c.SequenceId, 1) & 0x7FFF)
 }
 
 func (c *QQClient) nextPacketSeq() int32 {

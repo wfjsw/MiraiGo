@@ -7,7 +7,6 @@ import (
 	"errors"
 	"net"
 	"strconv"
-	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/wfjsw/MiraiGo/binary"
@@ -26,33 +25,32 @@ func (c *QQClient) highwayUploadImage(ip uint32, port int, updKey, img []byte, c
 		return err
 	}
 	defer conn.Close()
-	if err = conn.SetDeadline(time.Now().Add(time.Second * 10)); err != nil {
-		return err
-	}
 	h := md5.Sum(img)
 	pkt := c.buildImageUploadPacket(img, updKey, cmdId, h)
+	r := binary.NewNetworkReader(conn)
 	for _, p := range pkt {
 		_, err = conn.Write(p)
+		if err != nil {
+			return err
+		}
+		_, err = r.ReadByte()
+		if err != nil {
+			return err
+		}
+		hl, _ := r.ReadInt32()
+		a2, _ := r.ReadInt32()
+		payload, _ := r.ReadBytes(int(hl))
+		_, _ = r.ReadBytes(int(a2))
+		r.ReadByte()
+		rsp := new(pb.RspDataHighwayHead)
+		if err = proto.Unmarshal(payload, rsp); err != nil {
+			return err
+		}
+		if rsp.ErrorCode != 0 {
+			return errors.New("upload failed")
+		}
 	}
-	if err != nil {
-		return err
-	}
-	r := binary.NewNetworkReader(conn)
-	_, err = r.ReadByte()
-	if err != nil {
-		return err
-	}
-	hl, _ := r.ReadInt32()
-	_, _ = r.ReadBytes(4)
-	payload, _ := r.ReadBytes(int(hl))
-	_ = conn.Close()
-	rsp := new(pb.RspDataHighwayHead)
-	if err = proto.Unmarshal(payload, rsp); err != nil {
-		return err
-	}
-	if rsp.ErrorCode != 0 {
-		return errors.New("upload failed")
-	}
+
 	return nil
 }
 
