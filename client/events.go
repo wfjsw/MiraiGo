@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"runtime/debug"
 	"sync"
 
 	"github.com/wfjsw/MiraiGo/message"
@@ -300,6 +301,7 @@ func cover(f func()) {
 	defer func() {
 		if pan := recover(); pan != nil {
 			fmt.Println("event error:", pan)
+			fmt.Println(debug.Stack())
 		}
 	}()
 	f()

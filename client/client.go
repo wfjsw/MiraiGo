@@ -12,6 +12,7 @@ import (
 	"math"
 	"math/rand"
 	"net"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -958,6 +959,7 @@ func (c *QQClient) netLoop() {
 			defer func() {
 				if pan := recover(); pan != nil {
 					fmt.Println("panic on decoder:", pan)
+					fmt.Println(debug.Stack())
 				}
 			}()
 			decoder, ok := c.decoders[pkt.CommandName]

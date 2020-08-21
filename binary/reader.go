@@ -2,7 +2,9 @@ package binary
 
 import (
 	"bytes"
+	"fmt"
 	"net"
+	"runtime/debug"
 )
 
 type Reader struct {
@@ -83,6 +85,8 @@ func (r *Reader) ReadAvailable() []byte {
 func (r *Reader) ReadTlvMap(tagSize int) (m TlvMap) {
 	defer func() {
 		if r := recover(); r != nil {
+			fmt.Println("panic on tlv map reader:", pan)
+			fmt.Println(debug.Stack())
 			// TODO: error
 		}
 	}()
