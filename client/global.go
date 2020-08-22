@@ -76,9 +76,9 @@ type DeviceInfoFile struct {
 }
 
 type VersionFile struct {
-	Incremental []byte `json:"incremental"`
-	Release     []byte `json:"release"`
-	CodeName    []byte `json:"codename"`
+	Incremental string `json:"incremental"`
+	Release     string `json:"release"`
+	CodeName    string `json:"codename"`
 	Sdk         uint32 `json:"sdk"`
 }
 
