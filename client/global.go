@@ -18,30 +18,32 @@ import (
 )
 
 type DeviceInfo struct {
-	Display     []byte
-	Product     []byte
-	Device      []byte
-	Board       []byte
-	Brand       []byte
-	Model       []byte
-	Bootloader  []byte
-	FingerPrint []byte
-	BootId      []byte
-	ProcVersion []byte
-	BaseBand    []byte
-	SimInfo     []byte
-	OSType      []byte
-	MacAddress  []byte
-	IpAddress   []byte
-	WifiBSSID   []byte
-	WifiSSID    []byte
-	IMSIMd5     []byte
-	IMEI        string
-	AndroidId   []byte
-	APN         []byte
-	Guid        []byte
-	TgtgtKey    []byte
-	Version     *Version
+	Display      []byte
+	Product      []byte
+	Device       []byte
+	Board        []byte
+	Brand        []byte
+	Model        []byte
+	Bootloader   []byte
+	FingerPrint  []byte
+	BootId       []byte
+	ProcVersion  []byte
+	BaseBand     []byte
+	SimInfo      []byte
+	OSType       []byte
+	MacAddress   []byte
+	IpAddress    []byte
+	WifiBSSID    []byte
+	WifiSSID     []byte
+	IMSIMd5      []byte
+	IMEI         string
+	AndroidId    []byte
+	APN          []byte
+	Guid         []byte
+	TgtgtKey     []byte
+	Version      *Version
+	VendorName   string
+	VendorOSName string
 }
 
 type Version struct {
@@ -52,15 +54,32 @@ type Version struct {
 }
 
 type DeviceInfoFile struct {
-	Display     string `json:"display"`
-	Product     string `json:"product"`
-	Device      string `json:"device"`
-	Board       string `json:"board"`
-	Model       string `json:"model"`
-	FingerPrint string `json:"finger_print"`
-	BootId      string `json:"boot_id"`
-	ProcVersion string `json:"proc_version"`
-	IMEI        string `json:"imei"`
+	Display      string       `json:"display"`
+	Product      string       `json:"product"`
+	Device       string       `json:"device"`
+	Board        string       `json:"board"`
+	Model        string       `json:"model"`
+	Bootloader   string       `json:"bootloader"`
+	FingerPrint  string       `json:"finger_print"`
+	BootId       string       `json:"boot_id"`
+	ProcVersion  string       `json:"proc_version"`
+	SimInfo      string       `json:"sim_info"`
+	MacAddress   string       `json:"mac_address"`
+	WifiBSSID    string       `json:"wifi_bssid"`
+	WifiSSID     string       `json:"wifi_ssid"`
+	IMEI         string       `json:"imei"`
+	AndroidId    string       `json:"android_id"`
+	APN          string       `json:"apn"`
+	Version      *VersionFile `json:"version"`
+	VendorName   string       `json:"vendor_name"`
+	VendorOSName string       `json:"vendor_os_name"`
+}
+
+type VersionFile struct {
+	Incremental []byte `json:"incremental"`
+	Release     []byte `json:"release"`
+	CodeName    []byte `json:"codename"`
+	Sdk         uint32 `json:"sdk"`
 }
 
 type groupMessageBuilder struct {
@@ -86,7 +105,7 @@ var SystemDeviceInfo = &DeviceInfo{
 	SimInfo:     []byte("CMCC"),
 	OSType:      []byte("android"),
 	MacAddress:  []byte("00:50:56:C0:00:08"),
-	IpAddress:   []byte{10, 0, 1, 3}, // 10.0.1.3
+	IpAddress:   []byte{192, 168, 1, 101}, // 10.0.1.3
 	WifiBSSID:   []byte("00:50:56:C0:00:08"),
 	WifiSSID:    []byte("<unknown ssid>"),
 	IMEI:        "468356291846738",
@@ -98,6 +117,8 @@ var SystemDeviceInfo = &DeviceInfo{
 		CodeName:    []byte("REL"),
 		Sdk:         29,
 	},
+	VendorName:   "OnePlus",
+	VendorOSName: "ONEPLUS A5000_23_17",
 }
 
 const IMEI_BASE_DIGITS_COUNT int = 14
@@ -155,16 +176,32 @@ func GenRandomDevice() {
 }
 
 func (info *DeviceInfo) ToJson() []byte {
+	v := &VersionFile{
+		Incremental: string(info.Version.Incremental),
+		Release:     string(info.Version.Release),
+		CodeName:    string(info.Version.CodeName),
+		Sdk:         info.Version.Sdk,
+	}
 	f := &DeviceInfoFile{
-		Display:     string(info.Display),
-		Product:     string(info.Product),
-		Device:      string(info.Device),
-		Board:       string(info.Board),
-		Model:       string(info.Model),
-		FingerPrint: string(info.FingerPrint),
-		BootId:      string(info.BootId),
-		ProcVersion: string(info.ProcVersion),
-		IMEI:        info.IMEI,
+		Display:      string(info.Display),
+		Product:      string(info.Product),
+		Device:       string(info.Device),
+		Board:        string(info.Board),
+		Model:        string(info.Model),
+		Bootloader:   string(info.Bootloader),
+		FingerPrint:  string(info.FingerPrint),
+		BootId:       string(info.BootId),
+		ProcVersion:  string(info.ProcVersion),
+		SimInfo:      string(info.SimInfo),
+		MacAddress:   string(info.MacAddress),
+		WifiBSSID:    string(info.WifiBSSID),
+		WifiSSID:     string(info.WifiSSID),
+		IMEI:         string(info.IMEI),
+		AndroidId:    string(info.IMEI),
+		APN:          string(info.APN),
+		Version:      v,
+		VendorName:   info.VendorName,
+		VendorOSName: info.VendorOSName,
 	}
 	d, _ := json.Marshal(f)
 	return d
@@ -182,11 +219,41 @@ func (info *DeviceInfo) ReadJson(d []byte) error {
 		info.Board = []byte(f.Board)
 		info.Model = []byte(f.Model)
 	}
+	if f.Bootloader != "" {
+		info.Bootloader = []byte(f.Bootloader)
+	}
 	info.FingerPrint = []byte(f.FingerPrint)
 	info.BootId = []byte(f.BootId)
 	info.ProcVersion = []byte(f.ProcVersion)
+	if f.SimInfo != "" {
+		info.SimInfo = []byte(f.SimInfo)
+	}
+	if f.MacAddress != "" {
+		info.MacAddress = []byte(f.MacAddress)
+	}
+	if f.WifiBSSID != "" {
+		info.WifiBSSID = []byte(f.WifiBSSID)
+	}
+	if f.WifiSSID != "" {
+		info.WifiSSID = []byte(f.WifiSSID)
+	}
 	info.IMEI = f.IMEI
-	info.AndroidId = SystemDeviceInfo.Display
+	info.AndroidId = []byte(f.AndroidId)
+	if f.APN != "" {
+		info.APN = []byte(f.APN)
+	}
+	if f.Version != nil {
+		info.Version.Incremental = []byte(f.Version.Incremental)
+		info.Version.Release = []byte(f.Version.Release)
+		info.Version.CodeName = []byte(f.Version.CodeName)
+		info.Version.Sdk = f.Version.Sdk
+	}
+	if f.VendorName != "" {
+		info.VendorName = f.VendorName
+	}
+	if f.VendorOSName != "" {
+		info.VendorOSName = f.VendorOSName
+	}
 	SystemDeviceInfo.GenNewGuid()
 	SystemDeviceInfo.GenNewTgtgtKey()
 	return nil

@@ -122,6 +122,14 @@ func (c *QQClient) buildCaptchaPacket(result string, sign []byte) (uint16, []byt
 	return seq, packet
 }
 
+func ipToLong(ip []byte) int64 {
+	a := int64(0)
+	for i, c := range ip {
+		a |= int64(c) << (i * 16)
+	}
+	return a
+}
+
 // StatSvc.register
 func (c *QQClient) buildClientRegisterPacket() (uint16, []byte) {
 	seq := c.nextSeq()
@@ -144,7 +152,7 @@ func (c *QQClient) buildClientRegisterPacket() (uint16, []byte) {
 		OpenPush:     1,
 		LargeSeq:     1551,
 		OldSSOIp:     0,
-		NewSSOIp:     31806887127679168,
+		NewSSOIp:     ipToLong(SystemDeviceInfo.IpAddress),
 		ChannelNo:    "",
 		CPID:         0,
 		VendorName:   "MIUI",
