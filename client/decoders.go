@@ -404,9 +404,10 @@ func decodeGroupImageStoreResponse(_ *QQClient, _ uint16, payload []byte) (inter
 		}, nil
 	}
 	if rsp.BoolFileExit {
-		return imageUploadResponse{IsExists: true}, nil
+		return imageUploadResponse{IsExists: true, FileId: rsp.Fid}, nil
 	}
 	return imageUploadResponse{
+		FileId:     rsp.Fid,
 		UploadKey:  rsp.UpUkey,
 		UploadIp:   rsp.Uint32UpIp,
 		UploadPort: rsp.Uint32UpPort,
@@ -638,6 +639,23 @@ func decodeOnlinePushTransPacket(c *QQClient, _ uint16, payload []byte) (interfa
 							Operator: g.FindMember(operator),
 						})
 					}
+				}
+			case 0x82:
+				if m := g.FindMember(target); m != nil {
+					g.removeMember(target)
+					c.dispatchMemberLeaveEvent(&MemberLeaveGroupEvent{
+						Group:  g,
+						Member: m,
+					})
+				}
+			case 0x83:
+				if m := g.FindMember(target); m != nil {
+					g.removeMember(target)
+					c.dispatchMemberLeaveEvent(&MemberLeaveGroupEvent{
+						Group:    g,
+						Member:   m,
+						Operator: g.FindMember(operator),
+					})
 				}
 			}
 		}

@@ -854,6 +854,16 @@ func (c *QQClient) buildGroupNameUpdatePacket(groupCode int64, newName string) (
 	return c.buildGroupOperationPacket(body)
 }
 
+func (c *QQClient) buildGroupMemoUpdatePacket(groupCode int64, newMemo string) (uint16, []byte) {
+	body := &oidb.D89AReqBody{
+		GroupCode: groupCode,
+		StGroupInfo: &oidb.D89AGroupinfo{
+			IngGroupMemo: []byte(newMemo),
+		},
+	}
+	return c.buildGroupOperationPacket(body)
+}
+
 // OidbSvc.0x89a_0
 func (c *QQClient) buildGroupMuteAllPacket(groupCode int64, mute bool) (uint16, []byte) {
 	body := &oidb.D89AReqBody{

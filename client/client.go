@@ -504,7 +504,7 @@ func (c *QQClient) UploadGroupImage(groupCode int64, img []byte) (*message.Group
 	}
 	return nil, errors.New("upload failed")
 ok:
-	return message.NewGroupImage(binary.CalculateImageResourceId(h[:]), h[:]), nil
+	return message.NewGroupImage(binary.CalculateImageResourceId(h[:]), h[:], rsp.FileId), nil
 }
 
 func (c *QQClient) UploadPrivateImage(target int64, img []byte) (*message.FriendImageElement, error) {
@@ -581,7 +581,7 @@ func (c *QQClient) QueryGroupImage(groupCode int64, hash []byte, size int32) (*m
 		return nil, errors.New(rsp.Message)
 	}
 	if rsp.IsExists {
-		return message.NewGroupImage(binary.CalculateImageResourceId(hash), hash), nil
+		return message.NewGroupImage(binary.CalculateImageResourceId(hash), hash, rsp.FileId), nil
 	}
 	return nil, errors.New("image not exists")
 }
@@ -773,6 +773,10 @@ func (c *QQClient) editMemberSpecialTitle(groupCode, memberUin int64, title stri
 
 func (c *QQClient) updateGroupName(groupCode int64, newName string) {
 	_, _ = c.sendAndWait(c.buildGroupNameUpdatePacket(groupCode, newName))
+}
+
+func (c *QQClient) updateGroupMemo(groupCode int64, newMemo string) {
+	_, _ = c.sendAndWait(c.buildGroupMemoUpdatePacket(groupCode, newMemo))
 }
 
 func (c *QQClient) groupMuteAll(groupCode int64, mute bool) {

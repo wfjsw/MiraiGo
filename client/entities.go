@@ -163,6 +163,7 @@ type (
 		Message    string
 
 		IsExists bool
+		FileId   int64
 
 		ResourceId string
 		UploadKey  []byte
@@ -204,6 +205,13 @@ func (g *GroupInfo) UpdateName(newName string) {
 	if g.AdministratorOrOwner() && newName != "" && strings.Count(newName, "") <= 20 {
 		g.client.updateGroupName(g.Code, newName)
 		g.Name = newName
+	}
+}
+
+func (g *GroupInfo) UpdateMemo(newMemo string) {
+	if g.AdministratorOrOwner() {
+		g.client.updateGroupMemo(g.Code, newMemo)
+		g.Memo = newMemo
 	}
 }
 
