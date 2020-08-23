@@ -318,6 +318,7 @@ func ToProtoElems(elems []IMessageElement, generalFlags bool) (r []*msg.Elem) {
 						Str: "你的QQ暂不支持查看[转发多条消息]，请期待后续版本。",
 					},
 				})
+				continue
 			}
 			if e.Id == 33 {
 				r = append(r, &msg.Elem{
@@ -330,6 +331,7 @@ func ToProtoElems(elems []IMessageElement, generalFlags bool) (r []*msg.Elem) {
 						MsgResId:  []byte{},
 					},
 				})
+				continue
 			}
 			r = append(r, &msg.Elem{
 				RichMsg: &msg.RichMsg{
