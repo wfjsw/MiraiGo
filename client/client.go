@@ -953,22 +953,23 @@ func (c *QQClient) netLoop() {
 					fmt.Printf("%s\n", debug.Stack())
 				}
 			}()
-			decoder, ok := c.decoders[pkt.CommandName]
-			if !ok {
-				// log.Output(1, "Unknown Command "+pkt.CommandName)
+
+			if decoder, ok := c.decoders[pkt.CommandName]; ok {
+				// found predefined decoder
+				rsp, err := decoder(c, pkt.SequenceId, payload)
+				if err != nil {
+					log.Println("decode", pkt.CommandName, "error:", err)
+				}
 				if f, ok := c.handlers.Load(pkt.SequenceId); ok {
 					c.handlers.Delete(pkt.SequenceId)
-					f.(func(i interface{}, err error))(nil, nil)
+					f.(func(i interface{}, err error))(rsp, err)
 				}
-				return
-			}
-			rsp, err := decoder(c, pkt.SequenceId, payload)
-			if err != nil {
-				log.Println("decode", pkt.CommandName, "error:", err)
-			}
-			if f, ok := c.handlers.Load(pkt.SequenceId); ok {
+			} else if f, ok := c.handlers.Load(pkt.SequenceId); ok {
+				// does not need decoder
 				c.handlers.Delete(pkt.SequenceId)
-				f.(func(i interface{}, err error))(rsp, err)
+				f.(func(i interface{}, err error))(nil, nil)
+			} else {
+				log.Printf("Unknown Command: %s\nSeq: %d\nData: %x", pkt.CommandName, pkt.SequenceId, payload)
 			}
 		}()
 	}

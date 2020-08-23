@@ -30,6 +30,10 @@ var (
 	groupLeaveLock = new(sync.Mutex)
 )
 
+func nullDecoder(_ *QQClient, _ uint16, _ []byte) (interface{}, error) {
+	return nil, nil
+}
+
 func decodeLoginResponse(c *QQClient, _ uint16, payload []byte) (interface{}, error) {
 	reader := binary.NewReader(payload)
 	reader.ReadUInt16() // sub command
