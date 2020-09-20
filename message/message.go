@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/tidwall/gjson"
 	"github.com/wfjsw/MiraiGo/binary"
 	"github.com/wfjsw/MiraiGo/client/pb/msg"
 	"github.com/wfjsw/MiraiGo/utils"
@@ -83,6 +84,8 @@ const (
 	File
 	Voice
 	Video
+	LightApp
+	RedBag
 )
 
 func (s *Sender) IsAnonymous() bool {
@@ -138,6 +141,8 @@ func (msg *GroupMessage) ToString() (res string) {
 			res += "[Image: " + e.ImageId + "]"
 		case *AtElement:
 			res += e.Display
+		case *RedBagElement:
+			res += "[RedBag:" + e.Title + "]"
 		case *ReplyElement:
 			res += "[Reply:" + strconv.FormatInt(int64(e.ReplySeq), 10) + "]"
 		}
@@ -178,6 +183,21 @@ func (msg *SendingMessage) Count(filter func(e IMessageElement) bool) (c int) {
 		}
 	}
 	return
+}
+
+func (msg *SendingMessage) ToFragmented() [][]IMessageElement {
+	var fragmented [][]IMessageElement
+	for _, elem := range msg.Elements {
+		switch o := elem.(type) {
+		case *TextElement:
+			for _, text := range utils.ChunkString(o.Content, 220) {
+				fragmented = append(fragmented, []IMessageElement{NewText(text)})
+			}
+		default:
+			fragmented = append(fragmented, []IMessageElement{o})
+		}
+	}
+	return fragmented
 }
 
 func EstimateLength(elems []IMessageElement, limit int) int {
@@ -339,6 +359,13 @@ func ToProtoElems(elems []IMessageElement, generalFlags bool) (r []*msg.Elem) {
 					ServiceId: e.Id,
 				},
 			})
+		case *LightAppElement:
+			r = append(r, &msg.Elem{
+				LightApp: &msg.LightAppElem{
+					Data:     append([]byte{1}, binary.ZlibCompress([]byte(e.Content))...),
+					MsgResid: []byte{1},
+				},
+			})
 		}
 	}
 	if generalFlags {
@@ -436,7 +463,7 @@ func ParseMessageElems(elems []*msg.Elem) []IMessageElement {
 			}
 			if content != "" {
 				// TODO: 解析具体的APP
-				return append(res, NewText(content))
+				return append(res, &LightAppElement{Content: content})
 			}
 		}
 		if elem.VideoFile != nil {
@@ -480,6 +507,15 @@ func ParseMessageElems(elems []*msg.Elem) []IMessageElement {
 				if elem.RichMsg.ServiceId == 33 {
 					continue // 前面一个 elem 已经解析到链接
 				}
+				if isOk := strings.Contains(content, "<?xml"); isOk {
+					res = append(res, NewRichXml(content, int64(elem.RichMsg.ServiceId)))
+					continue
+				} else {
+					if gjson.Valid(content) {
+						res = append(res, NewRichJson(content))
+						continue
+					}
+				}
 				res = append(res, NewText(content))
 			}
 		}
@@ -510,6 +546,17 @@ func ParseMessageElems(elems []*msg.Elem) []IMessageElement {
 				Md5:      elem.NotOnlineImage.PicMd5,
 			})
 		}
+		if elem.QQWalletMsg != nil && elem.QQWalletMsg.AioBody != nil {
+			msgType := elem.QQWalletMsg.AioBody.MsgType
+			if msgType == 2 || msgType == 3 || msgType == 6 {
+				return []IMessageElement{
+					&RedBagElement{
+						MsgType: RedBagMessageType(msgType),
+						Title:   elem.QQWalletMsg.AioBody.Receiver.Title,
+					},
+				}
+			}
+		}
 		if elem.Face != nil {
 			res = append(res, NewFace(elem.Face.Index))
 		}
@@ -525,7 +572,7 @@ func (forMsg *ForwardMessage) CalculateValidationData(seq, random int32, groupCo
 				FromUin: node.SenderId,
 				MsgSeq:  seq,
 				MsgTime: node.Time,
-				MsgUid:  0x01000000000000000 | (int64(random) & 0xFFFF_FFFF),
+				MsgUid:  0x01000000000000000 | (int64(random) & 0xFFFFFFFF),
 				MutiltransHead: &msg.MutilTransHead{
 					MsgId: 1,
 				},

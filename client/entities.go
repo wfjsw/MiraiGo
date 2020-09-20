@@ -4,16 +4,21 @@ import (
 	"errors"
 	"strings"
 	"sync"
+
+	"github.com/wfjsw/MiraiGo/binary/jce"
 )
 
 var (
-	ErrAlreadyOnline = errors.New("already online")
+	ErrAlreadyOnline  = errors.New("already online")
+	ErrMemberNotFound = errors.New("member not found")
 )
 
 type (
 	LoginError int
 
 	MemberPermission int
+
+	ClientProtocol int
 
 	LoginResponse struct {
 		Success bool
@@ -39,6 +44,18 @@ type (
 		//msgSeqList *utils.Cache
 	}
 
+	SummaryCardInfo struct {
+		Uin       int64
+		Sex       byte
+		Age       uint8
+		Nickname  string
+		Level     int32
+		City      string
+		Sign      string
+		Mobile    string
+		LoginDays int64
+	}
+
 	FriendListResponse struct {
 		TotalCount int32
 		List       []*FriendInfo
@@ -55,7 +72,7 @@ type (
 		Members        []*GroupMemberInfo
 
 		client  *QQClient
-		memLock *sync.Mutex
+		memLock sync.Mutex
 	}
 
 	GroupMemberInfo struct {
@@ -100,6 +117,11 @@ type (
 	MemberJoinGroupEvent struct {
 		Group  *GroupInfo
 		Member *GroupMemberInfo
+	}
+
+	IGroupNotifyEvent interface {
+		From() int64
+		Content() string
 	}
 
 	MemberLeaveGroupEvent struct {
@@ -147,6 +169,15 @@ type (
 		RequesterNick string
 
 		client *QQClient
+	}
+
+	LogEvent struct {
+		Type    string
+		Message string
+	}
+
+	ServerUpdatedEvent struct {
+		Servers []jce.SsoServerInfo
 	}
 
 	NewFriendEvent struct {
@@ -199,6 +230,10 @@ const (
 	Owner MemberPermission = iota
 	Administrator
 	Member
+
+	AndroidPhone ClientProtocol = 537062845
+	AndroidPad   ClientProtocol = 537062409
+	AndroidWatch ClientProtocol = 537061176
 )
 
 func (g *GroupInfo) UpdateName(newName string) {
@@ -215,6 +250,12 @@ func (g *GroupInfo) UpdateMemo(newMemo string) {
 	}
 }
 
+func (g *GroupInfo) UpdateGroupHeadPortrait(img []byte) {
+	if g.AdministratorOrOwner() {
+		_ = g.client.uploadGroupHeadPortrait(g.Uin, img)
+	}
+}
+
 func (g *GroupInfo) MuteAll(mute bool) {
 	if g.AdministratorOrOwner() {
 		g.client.groupMuteAll(g.Code, mute)
@@ -224,7 +265,6 @@ func (g *GroupInfo) MuteAll(mute bool) {
 func (g *GroupInfo) Quit() {
 	if g.SelfPermission() != Owner {
 		g.client.quitGroup(g.Code)
-		g.client.dispatchLeaveGroupEvent(&GroupLeaveEvent{Group: g})
 	}
 }
 
@@ -239,6 +279,16 @@ func (m *GroupMemberInfo) EditCard(card string) {
 	if m.Manageable() && len(card) <= 60 {
 		m.Group.client.editMemberCard(m.Group.Code, m.Uin, card)
 		m.CardName = card
+	}
+}
+
+func (m *GroupMemberInfo) Poke() {
+	m.Group.client.sendGroupPoke(m.Group.Code, m.Uin)
+}
+
+func (m *GroupMemberInfo) SetAdmin(flag bool) {
+	if m.Group.OwnerUin == m.Group.client.Uin {
+		m.Group.client.setGroupAdmin(m.Group.Code, m.Uin, flag)
 	}
 }
 
@@ -271,7 +321,7 @@ func (m *GroupMemberInfo) Manageable() bool {
 	if self == Member || m.Permission == Owner {
 		return false
 	}
-	return m.Permission != Administrator
+	return m.Permission != Administrator || self == Owner
 }
 
 func (r *UserJoinGroupRequest) Accept() {
