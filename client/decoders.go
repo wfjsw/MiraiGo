@@ -337,6 +337,18 @@ func decodeSvcNotify(c *QQClient, _ uint16, _ []byte) (interface{}, error) {
 	return nil, err
 }
 
+func decodeDevListResponse(c *QQClient, _ uint16, payload []byte) (interface{}, error) {
+	request := &jce.RequestPacket{}
+	request.ReadFrom(jce.NewJceReader(payload))
+	data := &jce.RequestDataVersion2{}
+	data.ReadFrom(jce.NewJceReader(request.SBuffer))
+	rsp := jce.NewJceReader(data.Map["SvcRspGetDevLoginInfo"]["QQService.SvcRspGetDevLoginInfo"][1:])
+	d := []jce.SvcDevLoginInfo{}
+	ret := rsp.ReadInt64(3)
+	rsp.ReadSlice(&d, 5)
+	return ret, nil
+}
+
 func decodeSummaryCardResponse(c *QQClient, _ uint16, payload []byte) (interface{}, error) {
 	request := &jce.RequestPacket{}
 	request.ReadFrom(jce.NewJceReader(payload))
@@ -518,6 +530,9 @@ func decodeGroupImageStoreResponse(_ *QQClient, _ uint16, payload []byte) (inter
 		}, nil
 	}
 	if rsp.BoolFileExit {
+		if rsp.MsgImgInfo != nil {
+			return imageUploadResponse{IsExists: true, FileId: rsp.FileId, Width: rsp.MsgImgInfo.FileWidth, Height: rsp.MsgImgInfo.FileHeight}, nil
+		}
 		return imageUploadResponse{IsExists: true, FileId: rsp.Fid}, nil
 	}
 	return imageUploadResponse{
@@ -1009,6 +1024,39 @@ func decodeOIDB6d6Response(c *QQClient, _ uint16, payload []byte) (interface{}, 
 	ip := rsp.DownloadFileRsp.DownloadIp
 	url := hex.EncodeToString(rsp.DownloadFileRsp.DownloadUrl)
 	return fmt.Sprintf("http://%s/ftn_handler/%s/", ip, url), nil
+}
+
+func decodeImageOcrResponse(_ *QQClient, _ uint16, payload []byte) (interface{}, error) {
+	pkg := oidb.OIDBSSOPkg{}
+	rsp := oidb.DE07RspBody{}
+	if err := proto.Unmarshal(payload, &pkg); err != nil {
+		return nil, err
+	}
+	if err := proto.Unmarshal(pkg.Bodybuffer, &rsp); err != nil {
+		return nil, err
+	}
+	if rsp.Wording != "" {
+		return nil, errors.New(rsp.Wording)
+	}
+	var texts []*TextDetection
+	for _, text := range rsp.OcrRspBody.TextDetections {
+		var points []*Coordinate
+		for _, c := range text.Polygon.Coordinates {
+			points = append(points, &Coordinate{
+				X: c.X,
+				Y: c.Y,
+			})
+		}
+		texts = append(texts, &TextDetection{
+			Text:        text.DetectedText,
+			Confidence:  text.Confidence,
+			Coordinates: points,
+		})
+	}
+	return &OcrResponse{
+		Texts:    texts,
+		Language: rsp.OcrRspBody.Language,
+	}, nil
 }
 
 func decodePttShortVideoDownResponse(c *QQClient, _ uint16, payload []byte) (interface{}, error) {

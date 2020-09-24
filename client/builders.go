@@ -116,6 +116,7 @@ func (c *QQClient) buildCaptchaPacket(result string, sign []byte) (uint16, []byt
 	req := packets.BuildOicqRequestPacket(c.Uin, 0x810, crypto.ECDH, c.RandomKey, func(w *binary.Writer) {
 		w.WriteUInt16(2) // sub command
 		w.WriteUInt16(4)
+
 		w.Write(tlv.T2(result, sign))
 		w.Write(tlv.T8(2052))
 		w.Write(tlv.T104(c.t104))
@@ -201,6 +202,29 @@ func (c *QQClient) buildConfPushRespPacket(t int32, pktSeq int64, jceBuf []byte)
 		Status:       make(map[string]string),
 	}
 	packet := packets.BuildUniPacket(c.Uin, seq, "ConfigPushSvc.PushResp", 1, c.OutGoingPacketSessionId, []byte{}, c.sigInfo.d2Key, pkt.ToBytes())
+	return seq, packet
+}
+
+// StatSvc.GetDevLoginInfo
+func (c *QQClient) buildDeviceListRequestPacket() (uint16, []byte) {
+	seq := c.nextSeq()
+	req := &jce.SvcReqGetDevLoginInfo{
+		Guid:           SystemDeviceInfo.Guid,
+		LoginType:      1,
+		AppName:        "com.tencent.mobileqq",
+		RequireMax:     20,
+		GetDevListType: 2,
+	}
+	buf := &jce.RequestDataVersion3{Map: map[string][]byte{"SvcReqGetDevLoginInfo": packRequestDataV3(req.ToBytes())}}
+	pkt := &jce.RequestPacket{
+		IVersion:     3,
+		SServantName: "StatSvc",
+		SFuncName:    "SvcReqGetDevLoginInfo",
+		SBuffer:      buf.ToBytes(),
+		Context:      make(map[string]string),
+		Status:       make(map[string]string),
+	}
+	packet := packets.BuildUniPacket(c.Uin, seq, "StatSvc.GetDevLoginInfo", 1, c.OutGoingPacketSessionId, []byte{}, c.sigInfo.d2Key, pkt.ToBytes())
 	return seq, packet
 }
 
@@ -1155,6 +1179,32 @@ func (c *QQClient) buildGroupFileDownloadReqPacket(groupCode int64, fileId strin
 	}
 	payload, _ := proto.Marshal(req)
 	packet := packets.BuildUniPacket(c.Uin, seq, "OidbSvc.0x6d6_2", 1, c.OutGoingPacketSessionId, EmptyBytes, c.sigInfo.d2Key, payload)
+	return seq, packet
+}
+
+// OidbSvc.0xe07_0
+func (c *QQClient) buildImageOcrRequestPacket(url, md5 string, size, weight, height int32) (uint16, []byte) {
+	seq := c.nextSeq()
+	body := &oidb.DE07ReqBody{
+		Version:  1,
+		Entrance: 3,
+		OcrReqBody: &oidb.OCRReqBody{
+			ImageUrl:              url,
+			OriginMd5:             md5,
+			AfterCompressMd5:      md5,
+			AfterCompressFileSize: size,
+			AfterCompressWeight:   weight,
+			AfterCompressHeight:   height,
+			IsCut:                 false,
+		},
+	}
+	b, _ := proto.Marshal(body)
+	req := &oidb.OIDBSSOPkg{
+		Command:    3591,
+		Bodybuffer: b,
+	}
+	payload, _ := proto.Marshal(req)
+	packet := packets.BuildUniPacket(c.Uin, seq, "OidbSvc.0xe07_0", 1, c.OutGoingPacketSessionId, EmptyBytes, c.sigInfo.d2Key, payload)
 	return seq, packet
 }
 

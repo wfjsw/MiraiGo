@@ -184,6 +184,22 @@ type (
 		Friend *FriendInfo
 	}
 
+	OcrResponse struct {
+		Texts    []*TextDetection `json:"texts"`
+		Language string           `json:"language"`
+	}
+
+	TextDetection struct {
+		Text        string        `json:"text"`
+		Confidence  int32         `json:"confidence"`
+		Coordinates []*Coordinate `json:"coordinates"`
+	}
+
+	Coordinate struct {
+		X int32 `json:"x"`
+		Y int32 `json:"y"`
+	}
+
 	groupMemberListResponse struct {
 		NextUin int64
 		list    []*GroupMemberInfo
@@ -195,6 +211,8 @@ type (
 
 		IsExists bool
 		FileId   int64
+		Width    int32
+		Height   int32
 
 		ResourceId string
 		UploadKey  []byte
