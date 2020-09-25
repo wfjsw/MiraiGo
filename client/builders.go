@@ -113,7 +113,7 @@ func (c *QQClient) buildDeviceLockLoginPacket(t402 []byte) (uint16, []byte) {
 
 func (c *QQClient) buildCaptchaPacket(result string, sign []byte) (uint16, []byte) {
 	seq := c.nextSeq()
-	req := packets.BuildOicqRequestPacket(c.Uin, 0x810, crypto.ECDH, c.RandomKey, func(w *binary.Writer) {
+	req := packets.BuildOicqRequestPacket(c.Uin, 0x0810, crypto.ECDH, c.RandomKey, func(w *binary.Writer) {
 		w.WriteUInt16(2) // sub command
 		w.WriteUInt16(4)
 
@@ -126,6 +126,75 @@ func (c *QQClient) buildCaptchaPacket(result string, sign []byte) (uint16, []byt
 	packet := packets.BuildLoginPacket(c.Uin, 2, make([]byte, 16), sso, []byte{})
 	return seq, packet
 }
+
+// wtlogin.exchange_emp
+// refresh session
+func (c *QQClient) buildRequestChangeSigPacket() (uint16, []byte) {
+	seq := c.nextSeq()
+	req := packets.BuildOicqRequestPacket(c.Uin, 0x0810, crypto.ECDH, c.RandomKey, func(w *binary.Writer) {
+		w.WriteUInt16(11)
+		if len(c.rollbackSig) > 0 {
+			w.WriteUInt16(19)
+		} else {
+			w.WriteUInt16(18)
+		}
+
+		w.Write(tlv.T100(uint32(SystemDeviceInfo.Protocol)))
+		w.Write(tlv.T10A(c.sigInfo.tgt))
+		w.Write(tlv.T116(150470524, 66560))
+		w.Write(tlv.T108(c.ksid))
+		w.Write(tlv.T144(
+			SystemDeviceInfo.AndroidId,
+			SystemDeviceInfo.GenDeviceInfoData(),
+			SystemDeviceInfo.OSType,
+			SystemDeviceInfo.Version.Release,
+			SystemDeviceInfo.SimInfo,
+			SystemDeviceInfo.APN,
+			false, true, false, tlv.GuidFlag(),
+			SystemDeviceInfo.Model,
+			SystemDeviceInfo.Guid,
+			SystemDeviceInfo.Brand,
+			SystemDeviceInfo.TgtgtKey,
+		))
+		w.Write(tlv.T143(c.sigInfo.tgtKey))
+		w.Write(tlv.T142("com.tencent.mobileqq"))
+		w.Write(tlv.T154(seq))
+		w.Write(tlv.T18(16, uint32(c.Uin)))
+		w.Write(tlv.T141(SystemDeviceInfo.SimInfo, SystemDeviceInfo.APN))
+		w.Write(tlv.T8(2052))
+		w.Write(tlv.T511([]string{
+			"tenpay.com", "openmobile.qq.com", "docs.qq.com", "connect.qq.com",
+			"qzone.qq.com", "vip.qq.com", "qun.qq.com", "game.qq.com", "qqweb.qq.com",
+			"office.qq.com", "ti.qq.com", "mail.qq.com", "qzone.com", "mma.qq.com",
+		}))
+		w.Write(tlv.T147(16, []byte("8.2.7"), []byte{0xA6, 0xB7, 0x45, 0xBF, 0x24, 0xA2, 0xC2, 0x77, 0x52, 0x77, 0x16, 0xF6, 0xF3, 0x6E, 0xB6, 0x8D}))
+
+		if len(c.rollbackSig) > 0 {
+			w.Write(tlv.T172(c.rollbackSig))
+		}
+
+		w.Write(tlv.T177())
+		w.Write(tlv.T187(SystemDeviceInfo.MacAddress))
+		w.Write(tlv.T188(SystemDeviceInfo.AndroidId))
+		w.Write(tlv.T194(SystemDeviceInfo.IMSIMd5))
+		w.Write(tlv.T202(SystemDeviceInfo.WifiBSSID, SystemDeviceInfo.WifiSSID))
+	})
+	sso := packets.BuildSsoPacket(seq, uint32(SystemDeviceInfo.Protocol), "wtlogin.exchange_emp", SystemDeviceInfo.IMEI, []byte{}, c.OutGoingPacketSessionId, req, c.ksid)
+	packet := packets.BuildLoginPacket(c.Uin, 2, make([]byte, 16), sso, []byte{})
+	return seq, packet
+}
+
+// wtlogin.exchange_emp
+// func (c *QQClient) buildRequestTgtgtNopicsigPacket() (uint16, []byte) {
+// 	seq := c.nextSeq()
+// 	req := packets.BuildOicqRequestPacket(c.Uin, 0x0810, crypto.ECDH, c.RandomKey, func(w *binary.Writer) {
+// 		w.WriteUInt16(15)
+
+// 	})
+// 	sso := packets.BuildSsoPacket(seq, uint32(SystemDeviceInfo.Protocol), "wtlogin.exchange_emp", SystemDeviceInfo.IMEI, []byte{}, c.OutGoingPacketSessionId, req, c.ksid)
+// 	packet := packets.BuildLoginPacket(c.Uin, 2, make([]byte, 16), sso, []byte{})
+// 	return seq, packet
+// }
 
 func ipToLong(ip []byte) int64 {
 	a := int64(0)

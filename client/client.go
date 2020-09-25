@@ -1136,3 +1136,13 @@ func (c *QQClient) doHeartbeat() {
 	}
 	c.heartbeatEnabled = false
 }
+
+func (c *QQClient) RefreshSession() {
+	seq, packet := c.buildRequestChangeSigPacket()
+	rsp, err := c.sendAndWait(seq, packet)
+	if err != nil {
+		fmt.Printf("%v+", err)
+	}
+	fmt.Printf("%v+", rsp)
+	return
+}
