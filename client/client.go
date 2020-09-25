@@ -129,6 +129,7 @@ func NewClientMd5(uin int64, passwordMd5 [16]byte) *QQClient {
 		OutGoingPacketSessionId: []byte{0x02, 0xB0, 0x5B, 0x8B},
 		decoders: map[string]func(*QQClient, uint16, []byte) (interface{}, error){
 			"wtlogin.login":                                decodeLoginResponse,             // 登录操作包
+			"wtlogin.exchange_emp":                         decodeExchangeEmpResponse,       // 会话更新包
 			"StatSvc.register":                             decodeClientRegisterResponse,    // 客户端注册包
 			"StatSvc.ReqMSFOffline":                        decodeMSFOfflinePacket,          // 强制离线
 			"StatSvc.GetDevLoginInfo":                      decodeDevListResponse,           // 设备列表请求包
@@ -1141,8 +1142,8 @@ func (c *QQClient) RefreshSession() {
 	seq, packet := c.buildRequestChangeSigPacket()
 	rsp, err := c.sendAndWait(seq, packet)
 	if err != nil {
-		fmt.Printf("%v+", err)
+		fmt.Printf("%+v", err)
 	}
-	fmt.Printf("%v+", rsp)
+	fmt.Printf("%+v", rsp)
 	return
 }

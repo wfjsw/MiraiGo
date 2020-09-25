@@ -122,6 +122,10 @@ func decodeLoginResponse(c *QQClient, _ uint16, payload []byte) (interface{}, er
 	return nil, nil // ?
 }
 
+func decodeExchangeEmpResponse(_ *QQClient, _ uint16, payload []byte) (interface{}, error) {
+	return payload, nil
+}
+
 func decodeClientRegisterResponse(_ *QQClient, _ uint16, payload []byte) (interface{}, error) {
 	request := &jce.RequestPacket{}
 	request.ReadFrom(jce.NewJceReader(payload))
