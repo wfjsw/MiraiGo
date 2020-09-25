@@ -139,7 +139,7 @@ func (c *QQClient) buildRequestChangeSigPacket() (uint16, []byte) {
 			w.WriteUInt16(18)
 		}
 
-		w.Write(tlv.T100(uint32(SystemDeviceInfo.Protocol)))
+		w.Write(tlv.T100(16))
 		w.Write(tlv.T10A(c.sigInfo.tgt))
 		w.Write(tlv.T116(150470524, 66560))
 		w.Write(tlv.T108(c.ksid))
