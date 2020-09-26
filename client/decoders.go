@@ -41,7 +41,6 @@ func nullDecoder(_ *QQClient, _ uint16, _ []byte) (interface{}, error) {
 func decodeLoginResponse(c *QQClient, _ uint16, payload []byte) (interface{}, error) {
 	reader := binary.NewReader(payload)
 	reader.ReadUInt16() // sub command
-	t := reader.ReadByte()
 	reader.ReadUInt16()
 	m := reader.ReadTlvMap(2)
 	if t == 0 { // login success
@@ -123,6 +122,11 @@ func decodeLoginResponse(c *QQClient, _ uint16, payload []byte) (interface{}, er
 }
 
 func decodeExchangeEmpResponse(_ *QQClient, _ uint16, payload []byte) (interface{}, error) {
+	reader := binary.NewReader(payload)
+	reader.ReadUInt16() // sub command
+	t := reader.ReadByte()
+	reader.ReadUInt16()
+	m := reader.ReadTlvMap(2)
 	return payload, nil
 }
 
