@@ -11,7 +11,7 @@ func T100(protocol uint32, mainSigMap uint32) []byte {
 			w.WriteUInt32(16)
 			w.WriteUInt32(protocol)
 			w.WriteUInt32(0)          // App client version
-			w.WriteUInt32(mainSigMap) // 34869472, 262208
+			w.WriteUInt32(mainSigMap) // 34869472
 		}))
 	})
 }
