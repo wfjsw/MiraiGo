@@ -1074,6 +1074,7 @@ func (c *QQClient) netLoop() {
 			//log.Println("parse incoming packet error: " + err.Error())
 			continue
 		}
+		c.Debug("rev pkt: %v seq: %v", pkt.CommandName, pkt.SequenceId)
 		payload := pkt.Payload
 		if pkt.Flag2 == 2 {
 			payload, err = pkt.DecryptPayload(c.RandomKey, c.sigInfo.wtSessionTicketKey)
@@ -1083,7 +1084,6 @@ func (c *QQClient) netLoop() {
 			}
 		}
 		retry = 0
-		c.Debug("rev pkt: %v seq: %v", pkt.CommandName, pkt.SequenceId)
 		go func() {
 			defer func() {
 				if pan := recover(); pan != nil {
