@@ -134,9 +134,9 @@ func (c *QQClient) buildRequestChangeSigPacket() (uint16, []byte) {
 	req := packets.BuildOicqRequestPacket(c.Uin, 0x0810, crypto.ECDH, c.RandomKey, func(w *binary.Writer) {
 		w.WriteUInt16(11)
 		if len(c.ksid) > 0 {
-			w.WriteUInt16(18)
-		} else {
 			w.WriteUInt16(17)
+		} else {
+			w.WriteUInt16(16)
 		}
 
 		w.Write(tlv.T100(uint32(SystemDeviceInfo.Protocol), 34869472))
@@ -169,7 +169,6 @@ func (c *QQClient) buildRequestChangeSigPacket() (uint16, []byte) {
 		w.Write(tlv.T187(SystemDeviceInfo.MacAddress))
 		w.Write(tlv.T188(SystemDeviceInfo.AndroidId))
 		w.Write(tlv.T194(SystemDeviceInfo.IMSIMd5))
-		w.Write(tlv.T202(SystemDeviceInfo.WifiBSSID, SystemDeviceInfo.WifiSSID))
 		w.Write(tlv.T511([]string{
 			"tenpay.com", "openmobile.qq.com", "docs.qq.com", "connect.qq.com",
 			"qzone.qq.com", "vip.qq.com", "qun.qq.com", "game.qq.com", "qqweb.qq.com",
