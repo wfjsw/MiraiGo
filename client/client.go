@@ -1140,7 +1140,7 @@ func (c *QQClient) doHeartbeat() {
 }
 
 func (c *QQClient) RefreshSession() {
-	seq, packet := c.buildRequestTgtgtNopicsigPacket()
+	seq, packet := c.buildRequestChangeSigPacket()
 	rsp, err := c.sendAndWait(seq, packet)
 	if err != nil {
 		fmt.Printf("%+v", err)
