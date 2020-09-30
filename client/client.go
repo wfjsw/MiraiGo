@@ -106,6 +106,7 @@ type loginSigInfo struct {
 	d2Key              []byte
 	wtSessionTicketKey []byte
 	deviceToken        []byte
+	t106               []byte
 
 	psKeyMap    map[string][]byte
 	pt4TokenMap map[string][]byte

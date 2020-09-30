@@ -40,7 +40,7 @@ func (c *QQClient) buildLoginPacket() (uint16, []byte) {
 
 		w.Write(tlv.T18(16, uint32(c.Uin)))
 		w.Write(tlv.T1(uint32(c.Uin), SystemDeviceInfo.IpAddress))
-		w.Write(tlv.T106(uint32(c.Uin), 0, uint32(SystemDeviceInfo.Protocol), c.PasswordMd5, true, SystemDeviceInfo.Guid, SystemDeviceInfo.TgtgtKey))
+		w.Write(tlv.T106(uint32(c.Uin), 0, uint32(SystemDeviceInfo.Protocol), c.PasswordMd5, true, SystemDeviceInfo.Guid, SystemDeviceInfo.TgtgtKey, 0))
 		w.Write(tlv.T116(184024956, 0x10400))
 		w.Write(tlv.T100(uint32(SystemDeviceInfo.Protocol), 34869472))
 		w.Write(tlv.T107(0))
@@ -158,7 +158,7 @@ func (c *QQClient) buildRequestChangeSigPacket() (uint16, []byte) {
 			SystemDeviceInfo.Brand,
 			SystemDeviceInfo.TgtgtKey,
 		))
-		w.Write(tlv.T143(c.sigInfo.tgtKey))
+		w.Write(tlv.T143(c.sigInfo.d2))
 		w.Write(tlv.T142("com.tencent.mobileqq"))
 		w.Write(tlv.T154(seq))
 		w.Write(tlv.T18(16, uint32(c.Uin)))
@@ -189,7 +189,7 @@ func (c *QQClient) buildRequestTgtgtNopicsigPacket() (uint16, []byte) {
 
 		w.Write(tlv.T18(16, uint32(c.Uin)))
 		w.Write(tlv.T1(uint32(c.Uin), SystemDeviceInfo.IpAddress))
-		w.Write(tlv.T106(uint32(c.Uin), 0, uint32(SystemDeviceInfo.Protocol), c.PasswordMd5, true, SystemDeviceInfo.Guid, SystemDeviceInfo.TgtgtKey))
+		w.Write(tlv.T106(uint32(c.Uin), 0, uint32(SystemDeviceInfo.Protocol), c.PasswordMd5, true, SystemDeviceInfo.Guid, SystemDeviceInfo.TgtgtKey, 1))
 		w.Write(tlv.T116(150470524, 66560))
 		w.Write(tlv.T100(2, 34869472))
 		w.Write(tlv.T107(0))

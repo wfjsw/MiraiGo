@@ -92,6 +92,7 @@ func (c *QQClient) decodeT119(data []byte) {
 		d2Key:              m[0x305],
 		wtSessionTicketKey: m[0x134],
 		deviceToken:        m[0x322],
+		t106:               m[0x106],
 
 		psKeyMap:    psKeyMap,
 		pt4TokenMap: pt4TokenMap,

@@ -9,7 +9,7 @@ import (
 	"github.com/wfjsw/MiraiGo/binary"
 )
 
-func T106(uin, salt, protocol uint32, passwordMd5 [16]byte, guidAvailable bool, guid, tgtgtKey []byte) []byte {
+func T106(uin, salt, protocol uint32, passwordMd5 [16]byte, guidAvailable bool, guid, tgtgtKey []byte, wtf uint32) []byte {
 	return binary.NewWriterF(func(w *binary.Writer) {
 		w.WriteUInt16(0x106)
 		body := binary.NewWriterF(func(w *binary.Writer) {
@@ -28,14 +28,14 @@ func T106(uin, salt, protocol uint32, passwordMd5 [16]byte, guidAvailable bool, 
 			w.WriteByte(0x01)
 			w.Write(passwordMd5[:])
 			w.Write(tgtgtKey)
-			w.WriteUInt32(0)
+			w.WriteUInt32(wtf)
 			w.WriteBool(guidAvailable)
 			if len(guid) == 0 {
 				for i := 0; i < 4; i++ {
 					w.WriteUInt32(rand.Uint32())
 				}
 			} else {
-				w.Write(guid)
+				w.Write(guid) // imei???
 			}
 			w.WriteUInt32(protocol)
 			w.WriteUInt32(1) // password login
