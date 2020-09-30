@@ -56,3 +56,10 @@ func T106(uin, salt, protocol uint32, passwordMd5 [16]byte, guidAvailable bool, 
 		}))
 	})
 }
+
+func T106P(t106 []byte) []byte {
+	return binary.NewWriterF(func(w *binary.Writer) {
+		w.WriteUInt16(0x106)
+		w.WriteTlv(t106)
+	})
+}

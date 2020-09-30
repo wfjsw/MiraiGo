@@ -189,7 +189,11 @@ func (c *QQClient) buildRequestTgtgtNopicsigPacket() (uint16, []byte) {
 
 		w.Write(tlv.T18(16, uint32(c.Uin)))
 		w.Write(tlv.T1(uint32(c.Uin), SystemDeviceInfo.IpAddress))
-		w.Write(tlv.T106(uint32(c.Uin), 0, uint32(SystemDeviceInfo.Protocol), c.PasswordMd5, true, SystemDeviceInfo.Guid, SystemDeviceInfo.TgtgtKey, 1))
+		if len(c.sigInfo.t106) > 0 {
+			w.Write(tlv.T106P(c.sigInfo.t106))
+		} else {
+			w.Write(tlv.T106(uint32(c.Uin), 0, uint32(SystemDeviceInfo.Protocol), c.PasswordMd5, true, SystemDeviceInfo.Guid, SystemDeviceInfo.TgtgtKey, 1))
+		}
 		w.Write(tlv.T116(150470524, 66560))
 		w.Write(tlv.T100(2, 34869472))
 		w.Write(tlv.T107(0))
