@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/wfjsw/MiraiGo/binary"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/wfjsw/MiraiGo/binary"
 )
 
 type EncryptECDH struct {

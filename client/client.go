@@ -22,6 +22,7 @@ import (
 	"github.com/wfjsw/MiraiGo/binary/jce"
 	"github.com/wfjsw/MiraiGo/client/pb/msg"
 	"github.com/wfjsw/MiraiGo/message"
+	"github.com/wfjsw/MiraiGo/protocol/crypto"
 	"github.com/wfjsw/MiraiGo/protocol/packets"
 	"github.com/wfjsw/MiraiGo/utils"
 )
